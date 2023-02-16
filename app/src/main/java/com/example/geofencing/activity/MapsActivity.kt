@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geofencing.R
 import com.example.geofencing.adapter.MainAdapter
 import com.example.geofencing.helper.GeofenceHelper
+import com.example.geofencing.manager.PrefsManager
 import com.example.geofencing.model.Message
 import com.example.geofencing.util.DialogFragment
 import com.google.android.gms.location.Geofence
@@ -29,6 +30,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 
 class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
     private val TAG = MapsActivity::class.simpleName
@@ -36,7 +39,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var geofenceHelper: GeofenceHelper
     private val dialogFragment = DialogFragment()
+    private lateinit var prefsManager: PrefsManager
     private var recyclerView: RecyclerView? = null
+    private lateinit var adapter: MainAdapter
     private val GEOFENCE_RADIUS = 200f
     private val GEOFENCE_ID = "SOME_GEOFENCE_ID"
     private val FINE_LOCATION_ACCESS_REQUEST_CODE = 10001
@@ -50,6 +55,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     private fun initView() {
+        prefsManager = PrefsManager.getInstance(this)!!
         val mapFragment: SupportMapFragment? =
             supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
@@ -58,6 +64,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView?.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+
         refreshStoryAdapter(getAllItems())
     }
 
@@ -172,12 +179,12 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         dialogFragment.show(supportFragmentManager, null)
 
         dialogFragment.saveClick = {
-
-
             mMap.clear()
             addMarker(latLng)
             addCircle(latLng, it.radius ?: GEOFENCE_RADIUS)
             addGeofence(latLng, it.radius ?: GEOFENCE_RADIUS, it)
+
+            adapter.addLocation(latLng)
         }
 
 
@@ -234,17 +241,13 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     private fun getAllItems(): ArrayList<String> {
-        val item: ArrayList<String> = ArrayList()
-        for (i: Int in 0..10) {
-            item.add("Test")
-        }
-        return item
+        val type: Type = object : TypeToken<ArrayList<String>>() {}.type
+        return prefsManager.getArrayList<String>(PrefsManager.KEY_LIST, type)
     }
 
 
-
     private fun refreshStoryAdapter(items: ArrayList<String>) {
-        val adapter = MainAdapter(items)
+        adapter = MainAdapter(this, items)
         recyclerView?.adapter = adapter
     }
 }
