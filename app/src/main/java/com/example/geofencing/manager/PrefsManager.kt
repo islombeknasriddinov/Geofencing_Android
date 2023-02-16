@@ -37,4 +37,9 @@ class PrefsManager(context: Context) {
         return if (json != null) Gson().fromJson(json, type)
         else ArrayList<T>()
     }
+
+    fun removeWithKey(key: String?) {
+        val prefsEditor = sharedPreferences.edit()
+        prefsEditor.remove(key).apply()
+    }
 }

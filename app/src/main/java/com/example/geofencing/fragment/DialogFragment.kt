@@ -1,4 +1,4 @@
-package com.example.geofencing.util
+package com.example.geofencing.fragment
 
 
 import android.os.Bundle
@@ -60,6 +60,11 @@ class DialogFragment : DialogFragment() {
                     )
                 )
             }
+
+            etEnter.text.clear()
+            etDwell.text.clear()
+            etExit.text.clear()
+            etRadius.text.clear()
             dismiss()
         }
 

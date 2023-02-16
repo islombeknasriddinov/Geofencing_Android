@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -19,7 +20,7 @@ import com.example.geofencing.adapter.MainAdapter
 import com.example.geofencing.helper.GeofenceHelper
 import com.example.geofencing.manager.PrefsManager
 import com.example.geofencing.model.Message
-import com.example.geofencing.util.DialogFragment
+import com.example.geofencing.fragment.DialogFragment
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
@@ -38,12 +39,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var mMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var geofenceHelper: GeofenceHelper
-    private val dialogFragment = DialogFragment()
     private lateinit var prefsManager: PrefsManager
     private var recyclerView: RecyclerView? = null
-    private lateinit var adapter: MainAdapter
-    private val GEOFENCE_RADIUS = 200f
-    private val GEOFENCE_ID = "SOME_GEOFENCE_ID"
+    private var adapter: MainAdapter? = null
+
     private val FINE_LOCATION_ACCESS_REQUEST_CODE = 10001
     private val BACKGROUND_LOCATION_ACCESS_REQUEST_CODE = 10002
 
@@ -62,11 +61,15 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         geofencingClient = LocationServices.getGeofencingClient(this)
         geofenceHelper = GeofenceHelper(this)
 
+        clearButton()
+
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView?.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
 
         refreshStoryAdapter(getAllItems())
     }
+
+
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -82,12 +85,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         ) {
             mMap.isMyLocationEnabled = true
         } else {
-            //Ask for permission
             if (ActivityCompat.shouldShowRequestPermissionRationale(
                     this, Manifest.permission.ACCESS_FINE_LOCATION
                 )
             ) {
-                //We need to show user a dialog for displaying why the permission is needed and then ask for the permission...
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -111,7 +112,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == FINE_LOCATION_ACCESS_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //We have the permission
                 if (ActivityCompat.checkSelfPermission(
                         this, Manifest.permission.ACCESS_FINE_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
@@ -176,15 +176,16 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     private fun handleMapLongClick(latLng: LatLng) {
+        val dialogFragment = DialogFragment()
+        val geofenceRadius = 200f
+        addMarker(latLng)
         dialogFragment.show(supportFragmentManager, null)
 
         dialogFragment.saveClick = {
-            mMap.clear()
-            addMarker(latLng)
-            addCircle(latLng, it.radius ?: GEOFENCE_RADIUS)
-            addGeofence(latLng, it.radius ?: GEOFENCE_RADIUS, it)
+            addCircle(latLng, it.radius ?: geofenceRadius)
+            addGeofence(latLng, it.radius ?: geofenceRadius, it)
 
-            adapter.addLocation(latLng)
+            adapter?.addLocation(latLng)
         }
 
 
@@ -192,8 +193,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     @SuppressLint("VisibleForTests")
     private fun addGeofence(latLng: LatLng, newRadius: Float, message: Message) {
+        val geofenceId = "SOME_GEOFENCE_ID"
+
         val geofence: Geofence = geofenceHelper.getGeofence(
-            GEOFENCE_ID,
+            geofenceId,
             latLng,
             newRadius,
             Geofence.GEOFENCE_TRANSITION_ENTER or
@@ -249,5 +252,14 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private fun refreshStoryAdapter(items: ArrayList<String>) {
         adapter = MainAdapter(this, items)
         recyclerView?.adapter = adapter
+    }
+
+    private fun clearButton() {
+        val clearMap = findViewById<LinearLayout>(R.id.ll_clean)
+        clearMap.setOnClickListener {
+            mMap.clear()
+            adapter?.clearHistory()
+            refreshStoryAdapter(getAllItems())
+        }
     }
 }
