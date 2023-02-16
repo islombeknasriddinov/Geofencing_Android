@@ -17,11 +17,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.geofencing.R
 import com.example.geofencing.adapter.MainAdapter
 import com.example.geofencing.helper.GeofenceHelper
+import com.example.geofencing.model.Message
+import com.example.geofencing.util.DialogFragment
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -34,6 +35,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var mMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var geofenceHelper: GeofenceHelper
+    private val dialogFragment = DialogFragment()
     private var recyclerView: RecyclerView? = null
     private val GEOFENCE_RADIUS = 200f
     private val GEOFENCE_ID = "SOME_GEOFENCE_ID"
@@ -59,34 +61,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         refreshStoryAdapter(getAllItems())
     }
 
-    private fun getAllItems(): ArrayList<String> {
-        val item: ArrayList<String> = ArrayList()
-        for (i: Int in 0..10) {
-            item.add("Test")
-        }
-        return item
-    }
-
-    private fun refreshStoryAdapter(items: ArrayList<String>) {
-        val adapter = MainAdapter(items)
-        recyclerView?.adapter = adapter
-    }
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val eiffel = LatLng(48.8589, 2.29365)
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(eiffel, 16F))
         enableUserLocation()
         mMap.setOnMapLongClickListener(this)
     }
@@ -134,8 +111,13 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
                         this, Manifest.permission.ACCESS_COARSE_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
+                    Toast.makeText(
+                        this,
+                        "Permission: ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION has not Granted",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-                mMap?.isMyLocationEnabled = true
+                mMap.isMyLocationEnabled = true
             } else {
                 //We do not have the permission..
             }
@@ -187,37 +169,52 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     private fun handleMapLongClick(latLng: LatLng) {
-        mMap.clear()
-        addMarker(latLng)
-        addCircle(latLng, GEOFENCE_RADIUS)
-        addGeofence(latLng, GEOFENCE_RADIUS)
+        dialogFragment.show(supportFragmentManager, null)
+
+        dialogFragment.saveClick = {
+
+
+            mMap.clear()
+            addMarker(latLng)
+            addCircle(latLng, it.radius ?: GEOFENCE_RADIUS)
+            addGeofence(latLng, it.radius ?: GEOFENCE_RADIUS, it)
+        }
+
+
     }
 
-    private fun addGeofence(latLng: LatLng, newRadius: Float) {
+    @SuppressLint("VisibleForTests")
+    private fun addGeofence(latLng: LatLng, newRadius: Float, message: Message) {
         val geofence: Geofence = geofenceHelper.getGeofence(
             GEOFENCE_ID,
             latLng,
             newRadius,
-            Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL or Geofence.GEOFENCE_TRANSITION_EXIT
+            Geofence.GEOFENCE_TRANSITION_ENTER or
+                    Geofence.GEOFENCE_TRANSITION_DWELL or
+                    Geofence.GEOFENCE_TRANSITION_EXIT
         )
         val geofencingRequest: GeofencingRequest = geofenceHelper.getGeofencingRequest(geofence)
-        val pendingIntent: PendingIntent? = geofenceHelper.getIntentPending()
+        val pendingIntent: PendingIntent? = geofenceHelper.getIntentPending(message)
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
+            Toast.makeText(
+                this,
+                "Permission: ACCESS_FINE_LOCATION has not Granted",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)
             .addOnSuccessListener {
-            Log.d(
-                TAG, "onSuccess: Geofence Added..."
-            )
-        }.addOnFailureListener { e ->
-            val errorMessage: String? = geofenceHelper?.getErrorString(e)
-            Log.d(TAG, "onFailure: $errorMessage")
-        }
+                Log.d(
+                    TAG, "onSuccess: Geofence Added..."
+                )
+            }.addOnFailureListener { e ->
+                val errorMessage: String? = geofenceHelper.getErrorString(e)
+                Log.d(TAG, "onFailure: $errorMessage")
+            }
 
     }
 
@@ -234,5 +231,20 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         circleOptions.fillColor(Color.argb(64, 255, 0, 0))
         circleOptions.strokeWidth(4F)
         mMap.addCircle(circleOptions)
+    }
+
+    private fun getAllItems(): ArrayList<String> {
+        val item: ArrayList<String> = ArrayList()
+        for (i: Int in 0..10) {
+            item.add("Test")
+        }
+        return item
+    }
+
+
+
+    private fun refreshStoryAdapter(items: ArrayList<String>) {
+        val adapter = MainAdapter(items)
+        recyclerView?.adapter = adapter
     }
 }

@@ -5,7 +5,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.os.Bundle
 import com.example.geofencing.broadcast.GeofenceBroadcastReceiver
+import com.example.geofencing.model.Message
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
@@ -32,11 +34,14 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
             .build()
     }
 
-    fun getIntentPending(): PendingIntent? {
+    fun getIntentPending(message: Message): PendingIntent? {
         if (pendingIntent != null) {
             return pendingIntent
         }
         val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        val bundle = Bundle()
+        bundle.putSerializable("message", message)
+        intent.putExtra("data", bundle)
         pendingIntent =
             PendingIntent.getBroadcast(this, 2607, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         return pendingIntent

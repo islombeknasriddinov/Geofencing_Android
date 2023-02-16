@@ -2,4 +2,11 @@
     <string name="app_name">Geofencing</string>
     <string name="title_activity_maps">Map</string>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyCjBexrU4tJu_SLoeLz04_zlv7hk6aiWuc</string>
+    <string name="enter_message">Set your Enter Message</string>
+    <string name="dwell_message">Set your Dwell message</string>
+    <string name="exit_message">Set your Exit Message</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="add_location">Add location</string>
+    <string name="set_radius">Set your Geofencing radius</string>
 </resources>
