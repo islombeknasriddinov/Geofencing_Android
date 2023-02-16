@@ -15,16 +15,21 @@ import com.google.android.gms.maps.model.LatLng
 
 class GeofenceHelper(base: Context?) : ContextWrapper(base) {
     var pendingIntent: PendingIntent? = null
-    fun getGeofencingRequest(geofence: Geofence?): GeofencingRequest {
-        return GeofencingRequest.Builder().addGeofence(geofence)
-            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER).build()
+    fun getGeofencingRequest(geofence: Geofence): GeofencingRequest {
+        return GeofencingRequest.Builder()
+            .addGeofence(geofence)
+            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            .build()
     }
 
-    @SuppressLint("VisibleForTests")
     fun getGeofence(ID: String?, latLng: LatLng, radius: Float, transitionTypes: Int): Geofence {
-        return Geofence.Builder().setCircularRegion(latLng.latitude, latLng.longitude, radius)
-            .setRequestId(ID).setTransitionTypes(transitionTypes).setLoiteringDelay(5000)
-            .setExpirationDuration(Geofence.NEVER_EXPIRE).build()
+        return Geofence.Builder()
+            .setCircularRegion(latLng.latitude, latLng.longitude, radius)
+            .setRequestId(ID)
+            .setTransitionTypes(transitionTypes)
+            .setLoiteringDelay(5000)
+            .setExpirationDuration(Geofence.NEVER_EXPIRE)
+            .build()
     }
 
     fun getIntentPending(): PendingIntent? {

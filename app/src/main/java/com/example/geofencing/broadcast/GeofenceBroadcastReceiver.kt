@@ -15,13 +15,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
     private val TAG = GeofenceBroadcastReceiver::class.simpleName
 
-    @SuppressLint("VisibleForTests")
-    override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(context: Context, intent: Intent?) {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
 //        Toast.makeText(context, "Geofence triggered...", Toast.LENGTH_SHORT).show();
-        val notificationHelper = NotificationHelper(context)
-        val geofencingEvent = GeofencingEvent.fromIntent(intent)
+        val notificationHelper: NotificationHelper = NotificationHelper(context)
+        val geofencingEvent: GeofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent.hasError()) {
             Log.d(TAG, "onReceive: Error receiving geofence event...")
             return
@@ -32,6 +31,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         }
         //        Location location = geofencingEvent.getTriggeringLocation();
         val transitionType = geofencingEvent.geofenceTransition
+
         when (transitionType) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
                 Toast.makeText(context, "GEOFENCE_TRANSITION_ENTER", Toast.LENGTH_SHORT).show()

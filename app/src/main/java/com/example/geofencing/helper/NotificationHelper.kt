@@ -19,7 +19,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.example.geofencing.R
 import java.util.*
 
-class NotificationHelper(base: Context?) : ContextWrapper(base) {
+class NotificationHelper(base: Context) : ContextWrapper(base) {
     private val TAG = NotificationHelper::class.simpleName
     private val CHANNEL_NAME = "High priority channel"
     private val CHANNEL_ID = "com.example.notifications$CHANNEL_NAME"
@@ -32,7 +32,7 @@ class NotificationHelper(base: Context?) : ContextWrapper(base) {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private fun createChannels() {
-        val notificationChannel =
+        val notificationChannel: NotificationChannel =
             NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
         notificationChannel.enableLights(true)
         notificationChannel.enableVibration(true)
@@ -43,25 +43,29 @@ class NotificationHelper(base: Context?) : ContextWrapper(base) {
         manager.createNotificationChannel(notificationChannel)
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     fun sendHighPriorityNotification(title: String?, body: String?, activityName: Class<*>?) {
         val intent = Intent(this, activityName)
         val pendingIntent =
             PendingIntent.getActivity(this, 267, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         val notification =
-            NotificationCompat.Builder(this, CHANNEL_ID) //                .setContentTitle(title)
-                //                .setContentText(body)
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                //.setContentTitle(title)
+                //.setContentText(body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
-                .setPriority(NotificationCompat.PRIORITY_HIGH).setStyle(
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setStyle(
                     NotificationCompat.BigTextStyle().setSummaryText("summary")
                         .setBigContentTitle(title).bigText(body)
-                ).setContentIntent(pendingIntent).setAutoCancel(true).build()
+                )
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build()
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            NotificationManagerCompat.from(this).notify(Random().nextInt(), notification)
-        }
 
+        }
+        NotificationManagerCompat.from(this).notify(Random().nextInt(), notification)
     }
 }
