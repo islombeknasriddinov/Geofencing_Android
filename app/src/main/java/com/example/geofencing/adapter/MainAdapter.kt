@@ -9,9 +9,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geofencing.databinding.ItemBinding
 import com.example.geofencing.manager.PrefsManager
-import com.google.android.gms.maps.model.LatLng
+import com.example.geofencing.model.Marker
 
-class MainAdapter(context: Context, var items: ArrayList<String>) :
+class MainAdapter(context: Context, var items: ArrayList<Marker>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val prefsManager = PrefsManager.getInstance(context)
 
@@ -20,12 +20,14 @@ class MainAdapter(context: Context, var items: ArrayList<String>) :
         return ItemViewHolder(view)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         items.reverse()
         val item = items[position]
 
         if (holder is ItemViewHolder) {
-            holder.tvTitle.text = item
+            holder.tvLatitude.text = "Latitude: ${item.latLng?.latitude}"
+            holder.tvLongitude.text = "Longitude: ${item.latLng?.longitude}"
 
             holder.ivDelete.setOnClickListener {
                 removeItem(position)
@@ -38,11 +40,13 @@ class MainAdapter(context: Context, var items: ArrayList<String>) :
     }
 
     class ItemViewHolder(bn: ItemBinding) : RecyclerView.ViewHolder(bn.root) {
-        var tvTitle: TextView
+        var tvLatitude: TextView
+        var tvLongitude: TextView
         var ivDelete: ImageView
 
         init {
-            tvTitle = bn.tvText
+            tvLatitude = bn.tvLatitude
+            tvLongitude = bn.tvLongitude
             ivDelete = bn.ivDelete
         }
     }
@@ -54,10 +58,9 @@ class MainAdapter(context: Context, var items: ArrayList<String>) :
         saveNewLocation(items)
     }
 
-    fun addLocation(location: LatLng) {
-        val str = "Latitude: ${location.latitude} , Longitude: ${location.longitude}"
-        if (items.contains(str)) items.remove(str)
-        items.add(str)
+    fun addLocation(marker: Marker) {
+        if (items.contains(marker)) items.remove(marker)
+        items.add(marker)
         saveNewLocation(items)
     }
 
@@ -67,7 +70,7 @@ class MainAdapter(context: Context, var items: ArrayList<String>) :
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun saveNewLocation(list: ArrayList<String>) {
+    fun saveNewLocation(list: ArrayList<Marker>) {
         prefsManager?.saveArrayList(PrefsManager.KEY_LIST, list)
         notifyDataSetChanged()
     }

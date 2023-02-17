@@ -10,11 +10,21 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.geofencing.R
-import com.example.geofencing.model.Message
+import com.example.geofencing.model.Marker
+import com.google.android.gms.maps.model.LatLng
 
 class DialogFragment : DialogFragment() {
 
-    var saveClick: ((Message) -> Unit)? = null
+    var saveClick: ((Marker) -> Unit)? = null
+    var latLng: LatLng? = null
+
+
+    lateinit var etEnter: EditText
+    lateinit var etDwell: EditText
+    lateinit var etExit: EditText
+    lateinit var etRadius: EditText
+    lateinit var tvSave: TextView
+    lateinit var tvCancel: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,39 +48,49 @@ class DialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val etEnter: EditText = view.findViewById(R.id.et_enter)
-        val etDwell: EditText = view.findViewById(R.id.et_dwell)
-        val etExit: EditText = view.findViewById(R.id.et_exit)
-        val etRadius: EditText = view.findViewById(R.id.et_radius)
-        val tvSave: TextView = view.findViewById(R.id.tv_save)
-        val tvCancel: TextView = view.findViewById(R.id.tv_cancel)
+        etEnter = view.findViewById(R.id.et_enter)
+        etDwell = view.findViewById(R.id.et_dwell)
+        etExit = view.findViewById(R.id.et_exit)
+        etRadius = view.findViewById(R.id.et_radius)
+        tvSave = view.findViewById(R.id.tv_save)
+        tvCancel = view.findViewById(R.id.tv_cancel)
 
         tvSave.setOnClickListener {
-            if (etEnter.text.isNotEmpty() &&
-                etDwell.text.isNotEmpty() &&
-                etExit.text.isNotEmpty() &&
-                etRadius.text.isNotEmpty()
-            ) {
+            if (checkIsNotEmpty()) {
                 saveClick?.invoke(
-                    Message(
+                    Marker(
+                        "${System.currentTimeMillis()}",
                         etEnter.text.toString(),
                         etDwell.text.toString(),
                         etExit.text.toString(),
+                        latLng,
                         etRadius.text.toString().toFloat()
                     )
                 )
             }
 
-            etEnter.text.clear()
-            etDwell.text.clear()
-            etExit.text.clear()
-            etRadius.text.clear()
             dismiss()
         }
 
         tvCancel.setOnClickListener {
             dismiss()
         }
+    }
+
+    private fun checkIsNotEmpty(): Boolean {
+        return etEnter.text.isNotEmpty() && etDwell.text.isNotEmpty() && etExit.text.isNotEmpty() && etRadius.text.isNotEmpty()
+    }
+
+    fun setCurrentLatLng(newLatLng: LatLng) {
+        latLng = newLatLng
+    }
+
+    override fun onDestroyView() {
+        etEnter.text?.clear()
+        etDwell.text?.clear()
+        etExit.text?.clear()
+        etRadius.text?.clear()
+        super.onDestroyView()
     }
 
 }

@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -65,7 +66,11 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
+            Toast.makeText(
+                this,
+                "Permission: POST_NOTIFICATIONS has not Granted",
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         NotificationManagerCompat.from(this).notify(Random().nextInt(), notification)
