@@ -36,6 +36,7 @@ import java.lang.reflect.Type
 
 class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
     private val TAG = MapsActivity::class.simpleName
+
     private lateinit var mMap: GoogleMap
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var geofenceHelper: GeofenceHelper
@@ -61,7 +62,6 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         mapFragment?.getMapAsync(this)
         geofencingClient = LocationServices.getGeofencingClient(this)
         geofenceHelper = GeofenceHelper(this)
-
         clearButton()
 
         recyclerView = findViewById(R.id.recyclerView)
@@ -76,6 +76,14 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
         enableUserLocation()
         mMap.setOnMapLongClickListener(this)
+
+        if (getAllItems().isNotEmpty()) {
+            markerList.addAll(getAllItems())
+            for (marker in markerList) {
+                addMarker(marker)
+            }
+            addGeofence(markerList)
+        }
     }
 
     private fun enableUserLocation() {
@@ -182,8 +190,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         dialogFragment.setCurrentLatLng(latLng)
         dialogFragment.saveClick = { marker ->
             markerList.add(marker)
-            addMarker(latLng)
-            addCircle(marker)
+            addMarker(marker)
             addGeofence(markerList)
 
             adapter?.addLocation(marker)
@@ -225,12 +232,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     }
 
-    private fun addMarker(latLng: LatLng) {
-        val markerOptions: MarkerOptions = MarkerOptions().position(latLng)
-        mMap.addMarker(markerOptions)
-    }
-
-    private fun addCircle(marker: Marker) {
+    private fun addMarker(marker: Marker) {
         val circleOptions = CircleOptions()
         circleOptions.center(marker.latLng)
         circleOptions.radius(marker.radius!!.toDouble())
@@ -238,6 +240,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         circleOptions.fillColor(Color.argb(64, 255, 0, 0))
         circleOptions.strokeWidth(4F)
         mMap.addCircle(circleOptions)
+
+        val markerOptions: MarkerOptions = MarkerOptions().position(marker.latLng!!)
+        mMap.addMarker(markerOptions)
     }
 
     private fun getAllItems(): ArrayList<Marker> {
