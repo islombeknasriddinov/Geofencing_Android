@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -21,6 +20,8 @@ import com.example.geofencing.fragment.DialogFragment
 import com.example.geofencing.helper.GeofenceHelper
 import com.example.geofencing.manager.PrefsManager
 import com.example.geofencing.model.Marker
+import com.example.geofencing.util.buildCircle
+import com.example.geofencing.util.buildMarkerIcon
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
@@ -28,9 +29,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
 
@@ -113,9 +112,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == FINE_LOCATION_ACCESS_REQUEST_CODE) {
@@ -203,9 +200,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private fun addGeofence(markerList: ArrayList<Marker>) {
         val geofencingRequest: GeofencingRequest = geofenceHelper.getGeofencingRequest(
             markerList,
-            Geofence.GEOFENCE_TRANSITION_ENTER or
-                    Geofence.GEOFENCE_TRANSITION_DWELL or
-                    Geofence.GEOFENCE_TRANSITION_EXIT
+            Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL or Geofence.GEOFENCE_TRANSITION_EXIT
         )
 
         val pendingIntent: PendingIntent? = geofenceHelper.getIntentPending(markerList)
@@ -214,42 +209,30 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             Toast.makeText(
-                this,
-                "Permission: ACCESS_FINE_LOCATION has not Granted",
-                Toast.LENGTH_SHORT
+                this, "Permission: ACCESS_FINE_LOCATION has not Granted", Toast.LENGTH_SHORT
             ).show()
         }
 
-        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
-            .addOnSuccessListener {
-                Log.d(
-                    TAG, "onSuccess: Geofence Added..."
-                )
-            }.addOnFailureListener { e ->
-                val errorMessage: String? = geofenceHelper.getErrorString(e)
-                Log.d(TAG, "onFailure: $errorMessage")
-            }
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent).addOnSuccessListener {
+            Log.d(
+                TAG, "onSuccess: Geofence Added..."
+            )
+        }.addOnFailureListener { e ->
+            val errorMessage: String? = geofenceHelper.getErrorString(e)
+            Log.d(TAG, "onFailure: $errorMessage")
+        }
 
     }
 
     private fun addMarker(marker: Marker) {
-        val circleOptions = CircleOptions()
-        circleOptions.center(marker.latLng)
-        circleOptions.radius(marker.radius!!.toDouble())
-        circleOptions.strokeColor(Color.argb(255, 255, 0, 0))
-        circleOptions.fillColor(Color.argb(64, 255, 0, 0))
-        circleOptions.strokeWidth(4F)
-        mMap.addCircle(circleOptions)
-
-        val markerOptions: MarkerOptions = MarkerOptions().position(marker.latLng!!)
-        mMap.addMarker(markerOptions)
+        mMap.addMarker(buildMarkerIcon(marker))
+        mMap.addCircle(buildCircle(marker))
     }
 
     private fun getAllItems(): ArrayList<Marker> {
         val type: Type = object : TypeToken<ArrayList<Marker>>() {}.type
         return prefsManager.getArrayList<Marker>(PrefsManager.KEY_LIST, type)
     }
-
 
     private fun refreshStoryAdapter(items: ArrayList<Marker>) {
         adapter = MainAdapter(this, items)
