@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import com.example.geofencing.broadcast.GeofenceBroadcastReceiver
 import com.example.geofencing.model.Marker
@@ -25,10 +26,7 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
         for (coordinate in markerList) {
             geofenceList.add(
                 getGeofence(
-                    coordinate.markerId,
-                    coordinate.latLng!!,
-                    coordinate.radius!!,
-                    transitionTypes
+                    coordinate.markerId, coordinate.latLng!!, coordinate.radius!!, transitionTypes
                 )
             )
         }
@@ -42,8 +40,7 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
         ID: String?, latLng: LatLng, radius: Float, transitionTypes: Int
     ): Geofence {
         return Geofence.Builder().setCircularRegion(latLng.latitude, latLng.longitude, radius)
-            .setRequestId(ID)
-            .setTransitionTypes(transitionTypes).setLoiteringDelay(5000)
+            .setRequestId(ID).setTransitionTypes(transitionTypes).setLoiteringDelay(5000)
             .setExpirationDuration(Geofence.NEVER_EXPIRE).build()
     }
 
@@ -52,11 +49,16 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
         val bundle = Bundle()
         bundle.putParcelableArrayList("marker", markerList)
         intent.putExtra("data", bundle)
-        pendingIntent =
-            PendingIntent.getBroadcast(
-                this, 2607, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+
+        val pendingFlags: Int = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        pendingIntent = PendingIntent.getBroadcast(
+            this, 2607, intent, pendingFlags
+        )
         return pendingIntent
     }
 
