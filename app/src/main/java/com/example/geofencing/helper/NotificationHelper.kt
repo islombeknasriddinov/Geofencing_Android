@@ -1,7 +1,6 @@
 package com.example.geofencing.helper
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -33,7 +32,7 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private fun createChannels() {
-        val notificationChannel: NotificationChannel =
+        val notificationChannel =
             NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
         notificationChannel.enableLights(true)
         notificationChannel.enableVibration(true)
@@ -46,8 +45,15 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
 
     fun sendHighPriorityNotification(title: String?, body: String?, activityName: Class<*>?) {
         val intent = Intent(this, activityName)
+
+        val pendingFlags: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
         val pendingIntent =
-            PendingIntent.getActivity(this, 267, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getActivity(this, 267, intent, pendingFlags)
         val notification =
             NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)

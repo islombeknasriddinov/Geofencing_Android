@@ -8,6 +8,7 @@ import android.widget.Toast
 import com.example.geofencing.activity.MapsActivity
 import com.example.geofencing.helper.NotificationHelper
 import com.example.geofencing.model.Marker
+import com.example.geofencing.util.customGetParcelable
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 
@@ -16,19 +17,24 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
     private val TAG = GeofenceBroadcastReceiver::class.simpleName
 
     override fun onReceive(context: Context, intent: Intent) {
-        val notificationHelper: NotificationHelper = NotificationHelper(context)
-        val geofencingEvent: GeofencingEvent = GeofencingEvent.fromIntent(intent)
-        val markerList = intent.extras?.getBundle("data")
-            ?.getParcelableArrayList<Marker>("marker") as ArrayList<Marker>
+        val notificationHelper = NotificationHelper(context)
+        val geofencingEvent: GeofencingEvent? = GeofencingEvent.fromIntent(intent)
+        val markerList = intent.extras?.getBundle("my_usha_data")
+            ?.customGetParcelable<Marker>("marker") as ArrayList<Marker>
 
-        if (geofencingEvent.hasError()) {
+        if (geofencingEvent?.hasError() == true) {
             Log.d(TAG, "onReceive: Error receiving geofence event...")
             return
         }
-        val geofenceList = geofencingEvent.triggeringGeofences
+        val geofenceList = geofencingEvent?.triggeringGeofences ?: emptyList()
+
+        val r = geofencingEvent?.triggeringLocation
+        Log.d(TAG, "onReceive: $r")
+
         Log.d(TAG, geofenceList.size.toString())
 
-        val transitionType = geofencingEvent.geofenceTransition
+        val transitionType = geofencingEvent?.geofenceTransition ?: -1
+
 
         for (geofence in geofenceList) {
             Log.d(TAG, "onReceive: " + geofence.requestId)

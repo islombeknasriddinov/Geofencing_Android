@@ -76,12 +76,16 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         enableUserLocation()
         mMap.setOnMapLongClickListener(this)
 
+        loadDates()
+    }
+
+    private fun loadDates() {
         if (getAllItems().isNotEmpty()) {
             markerList.addAll(getAllItems())
+            addGeofence(markerList)
             for (marker in markerList) {
                 addMarker(marker)
             }
-            addGeofence(markerList)
         }
     }
 
@@ -200,10 +204,12 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private fun addGeofence(markerList: ArrayList<Marker>) {
         val geofencingRequest: GeofencingRequest = geofenceHelper.getGeofencingRequest(
             markerList,
-            Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL or Geofence.GEOFENCE_TRANSITION_EXIT
+            Geofence.GEOFENCE_TRANSITION_ENTER or
+                    Geofence.GEOFENCE_TRANSITION_DWELL or
+                    Geofence.GEOFENCE_TRANSITION_EXIT
         )
 
-        val pendingIntent: PendingIntent? = geofenceHelper.getIntentPending(markerList)
+        val pendingIntent: PendingIntent = geofenceHelper.getIntentPending(markerList)
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -231,7 +237,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     private fun getAllItems(): ArrayList<Marker> {
         val type: Type = object : TypeToken<ArrayList<Marker>>() {}.type
-        return prefsManager.getArrayList<Marker>(PrefsManager.KEY_LIST, type)
+        return prefsManager.getArrayList(PrefsManager.KEY_LIST, type)
     }
 
     private fun refreshStoryAdapter(items: ArrayList<Marker>) {
