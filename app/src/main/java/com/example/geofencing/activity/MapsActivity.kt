@@ -19,7 +19,7 @@ import com.example.geofencing.adapter.MainAdapter
 import com.example.geofencing.fragment.DialogFragment
 import com.example.geofencing.helper.GeofenceHelper
 import com.example.geofencing.manager.PrefsManager
-import com.example.geofencing.model.Marker
+import com.example.geofencing.model.MyMarker
 import com.example.geofencing.util.buildCircle
 import com.example.geofencing.util.buildMarkerIcon
 import com.google.android.gms.location.Geofence
@@ -42,7 +42,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     private lateinit var prefsManager: PrefsManager
     private var recyclerView: RecyclerView? = null
     private var adapter: MainAdapter? = null
-    private val markerList: ArrayList<Marker> = ArrayList()
+    private val myMarkerList: ArrayList<MyMarker> = ArrayList()
 
     private val FINE_LOCATION_ACCESS_REQUEST_CODE = 10001
     private val BACKGROUND_LOCATION_ACCESS_REQUEST_CODE = 10002
@@ -81,9 +81,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
 
     private fun loadDates() {
         if (getAllItems().isNotEmpty()) {
-            markerList.addAll(getAllItems())
-            addGeofence(markerList)
-            for (marker in markerList) {
+            myMarkerList.addAll(getAllItems())
+            addGeofence(myMarkerList)
+            for (marker in myMarkerList) {
                 addMarker(marker)
             }
         }
@@ -190,9 +190,9 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         dialogFragment.show(supportFragmentManager, null)
         dialogFragment.setCurrentLatLng(latLng)
         dialogFragment.saveClick = { marker ->
-            markerList.add(marker)
+            myMarkerList.add(marker)
             addMarker(marker)
-            addGeofence(markerList)
+            addGeofence(myMarkerList)
 
             adapter?.addLocation(marker)
         }
@@ -201,15 +201,15 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
     }
 
     @SuppressLint("VisibleForTests")
-    private fun addGeofence(markerList: ArrayList<Marker>) {
+    private fun addGeofence(myMarkerList: ArrayList<MyMarker>) {
         val geofencingRequest: GeofencingRequest = geofenceHelper.getGeofencingRequest(
-            markerList,
+            myMarkerList,
             Geofence.GEOFENCE_TRANSITION_ENTER or
                     Geofence.GEOFENCE_TRANSITION_DWELL or
                     Geofence.GEOFENCE_TRANSITION_EXIT
         )
 
-        val pendingIntent: PendingIntent = geofenceHelper.getIntentPending(markerList)
+        val pendingIntent: PendingIntent = geofenceHelper.getIntentPending(myMarkerList)
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
@@ -219,28 +219,28 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
             ).show()
         }
 
-        geofencingClient.addGeofences(geofencingRequest, pendingIntent).addOnSuccessListener {
-            Log.d(
-                TAG, "onSuccess: Geofence Added..."
-            )
-        }.addOnFailureListener { e ->
-            val errorMessage: String? = geofenceHelper.getErrorString(e)
-            Log.d(TAG, "onFailure: $errorMessage")
-        }
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+            .addOnSuccessListener {
+                Log.d(TAG, "onSuccess: Geofence Added...")
+
+            }.addOnFailureListener { e ->
+                val errorMessage: String? = geofenceHelper.getErrorString(e)
+                Log.d(TAG, "onFailure: $errorMessage")
+            }
 
     }
 
-    private fun addMarker(marker: Marker) {
-        mMap.addMarker(buildMarkerIcon(marker))
-        mMap.addCircle(buildCircle(marker))
+    private fun addMarker(myMarker: MyMarker) {
+        mMap.addMarker(buildMarkerIcon(myMarker))
+        mMap.addCircle(buildCircle(myMarker))
     }
 
-    private fun getAllItems(): ArrayList<Marker> {
-        val type: Type = object : TypeToken<ArrayList<Marker>>() {}.type
+    private fun getAllItems(): ArrayList<MyMarker> {
+        val type: Type = object : TypeToken<ArrayList<MyMarker>>() {}.type
         return prefsManager.getArrayList(PrefsManager.KEY_LIST, type)
     }
 
-    private fun refreshStoryAdapter(items: ArrayList<Marker>) {
+    private fun refreshStoryAdapter(items: ArrayList<MyMarker>) {
         adapter = MainAdapter(this, items)
         recyclerView?.adapter = adapter
     }
@@ -250,7 +250,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMapLong
         clearMap.setOnClickListener {
             mMap.clear()
             adapter?.clearHistory()
-            markerList.clear()
+            myMarkerList.clear()
             geofenceHelper.clearGeofenceList()
             refreshStoryAdapter(getAllItems())
         }

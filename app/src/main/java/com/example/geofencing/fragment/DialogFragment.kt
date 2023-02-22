@@ -10,12 +10,12 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
 import com.example.geofencing.R
-import com.example.geofencing.model.Marker
+import com.example.geofencing.model.MyMarker
 import com.google.android.gms.maps.model.LatLng
 
 class DialogFragment : DialogFragment() {
 
-    var saveClick: ((Marker) -> Unit)? = null
+    var saveClick: ((MyMarker) -> Unit)? = null
     var latLng: LatLng? = null
 
 
@@ -58,7 +58,7 @@ class DialogFragment : DialogFragment() {
         tvSave.setOnClickListener {
             if (checkIsNotEmpty()) {
                 saveClick?.invoke(
-                    Marker(
+                    MyMarker(
                         "${System.currentTimeMillis()}",
                         etEnter.text.toString(),
                         etDwell.text.toString(),

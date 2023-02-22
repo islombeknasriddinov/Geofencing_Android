@@ -21,7 +21,7 @@ import java.util.*
 
 class NotificationHelper(base: Context) : ContextWrapper(base) {
     private val TAG = NotificationHelper::class.simpleName
-    private val CHANNEL_NAME = "High priority channel"
+    private val CHANNEL_NAME = "High_priority_channel"
     private val CHANNEL_ID = "com.example.notifications$CHANNEL_NAME"
 
     init {
@@ -37,25 +37,25 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
         notificationChannel.enableLights(true)
         notificationChannel.enableVibration(true)
         notificationChannel.description = "this is the description of the channel."
-        notificationChannel.lightColor = Color.RED
+        notificationChannel.lightColor = Color.WHITE
         notificationChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(notificationChannel)
     }
 
     fun sendHighPriorityNotification(title: String?, body: String?, activityName: Class<*>?) {
-        val intent = Intent(this, activityName)
+        val intent = Intent(applicationContext, activityName)
 
         val pendingFlags: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         } else {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
         val pendingIntent =
-            PendingIntent.getActivity(this, 267, intent, pendingFlags)
+            PendingIntent.getActivity(applicationContext, 2607, intent, pendingFlags)
         val notification =
-            NotificationCompat.Builder(this, CHANNEL_ID)
+            NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setSmallIcon(R.drawable.ic_location)
@@ -79,7 +79,7 @@ class NotificationHelper(base: Context) : ContextWrapper(base) {
             ).show()
         }
 
-        NotificationManagerCompat.from(this).notify(Random().nextInt(), notification)
+        NotificationManagerCompat.from(applicationContext).notify(Random().nextInt(), notification)
 
     }
 }

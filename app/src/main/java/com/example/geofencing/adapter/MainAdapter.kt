@@ -9,9 +9,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.geofencing.databinding.ItemBinding
 import com.example.geofencing.manager.PrefsManager
-import com.example.geofencing.model.Marker
+import com.example.geofencing.model.MyMarker
 
-class MainAdapter(context: Context, var items: ArrayList<Marker>) :
+class MainAdapter(context: Context, var items: ArrayList<MyMarker>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val prefsManager = PrefsManager.getInstance(context)
 
@@ -58,9 +58,9 @@ class MainAdapter(context: Context, var items: ArrayList<Marker>) :
         saveNewLocation(items)
     }
 
-    fun addLocation(marker: Marker) {
-        if (items.contains(marker)) items.remove(marker)
-        items.add(marker)
+    fun addLocation(myMarker: MyMarker) {
+        if (items.contains(myMarker)) items.remove(myMarker)
+        items.add(myMarker)
         saveNewLocation(items)
     }
 
@@ -70,7 +70,7 @@ class MainAdapter(context: Context, var items: ArrayList<Marker>) :
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun saveNewLocation(list: ArrayList<Marker>) {
+    fun saveNewLocation(list: ArrayList<MyMarker>) {
         prefsManager?.saveArrayList(PrefsManager.KEY_LIST, list)
         notifyDataSetChanged()
     }

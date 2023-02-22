@@ -7,7 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import com.example.geofencing.broadcast.GeofenceBroadcastReceiver
-import com.example.geofencing.model.Marker
+import com.example.geofencing.model.MyMarker
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
@@ -18,13 +18,20 @@ import com.google.android.gms.maps.model.LatLng
 class GeofenceHelper(base: Context?) : ContextWrapper(base) {
     private val TAG = GeofenceHelper::class.simpleName
 
-    private lateinit var pendingIntent: PendingIntent
+    lateinit var pendingIntent: PendingIntent
     private val geofenceList: ArrayList<Geofence> = ArrayList()
     fun getGeofencingRequest(
-        markerList: ArrayList<Marker>, transitionTypes: Int
+        myMarkerList: ArrayList<MyMarker>, transitionTypes: Int
     ): GeofencingRequest {
-        for (coordinate in markerList) {
-            geofenceList.add(getGeofence(coordinate.markerId, coordinate.latLng!!, coordinate.radius!!, transitionTypes))
+        for (coordinate in myMarkerList) {
+            geofenceList.add(
+                getGeofence(
+                    coordinate.markerId,
+                    coordinate.latLng!!,
+                    coordinate.radius!!,
+                    transitionTypes
+                )
+            )
         }
         val builder = GeofencingRequest.Builder()
         builder.addGeofences(geofenceList)
@@ -42,20 +49,20 @@ class GeofenceHelper(base: Context?) : ContextWrapper(base) {
             .build()
     }
 
-    fun getIntentPending(markerList: ArrayList<Marker>): PendingIntent {
+    fun getIntentPending(myMarkerList: ArrayList<MyMarker>): PendingIntent {
         val intent = Intent(applicationContext, GeofenceBroadcastReceiver::class.java)
         val bundle = Bundle()
-        bundle.putParcelableArrayList("marker", markerList)
+        bundle.putParcelableArrayList("marker", myMarkerList)
         intent.putExtra("my_usha_data", bundle)
 
         val pendingFlags: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_MUTABLE
         } else {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
         pendingIntent = PendingIntent.getBroadcast(
-            applicationContext, 2607, intent, pendingFlags
+            this, 2607, intent, pendingFlags
         )
         return pendingIntent
     }

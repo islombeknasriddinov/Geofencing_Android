@@ -4,24 +4,24 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
-import com.example.geofencing.model.Marker
+import com.example.geofencing.model.MyMarker
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 
-fun buildCircle(marker: Marker): CircleOptions {
+fun buildCircle(myMarker: MyMarker): CircleOptions {
     val circleOptions = CircleOptions()
-    marker.latLng?.let { circleOptions.center(it) }
-    circleOptions.radius(marker.radius!!.toDouble())
+    myMarker.latLng?.let { circleOptions.center(it) }
+    circleOptions.radius(myMarker.radius!!.toDouble())
     circleOptions.strokeColor(Color.argb(255, 255, 0, 0))
     circleOptions.fillColor(Color.argb(64, 255, 0, 0))
     circleOptions.strokeWidth(4F)
     return circleOptions
 }
 
-fun buildMarkerIcon(marker: Marker): MarkerOptions {
+fun buildMarkerIcon(myMarker: MyMarker): MarkerOptions {
     val markerOptions = MarkerOptions()
-    markerOptions.position(marker.latLng!!)
-    markerOptions.title(marker.enter)
+    markerOptions.position(myMarker.latLng!!)
+    markerOptions.title(myMarker.enter)
     return markerOptions
 }
 

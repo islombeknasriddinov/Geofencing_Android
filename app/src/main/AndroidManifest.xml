@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Geofencing"
-        tools:targetApi="s">
+        tools:targetApi="33">
 
         <receiver
             android:name="com.example.geofencing.broadcast.GeofenceBroadcastReceiver"
